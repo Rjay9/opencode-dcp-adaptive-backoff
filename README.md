@@ -41,6 +41,12 @@ node --check dist/index.js
 
 或使用 `dcp-patch/apply.sh`（自动定位 DCP 包并应用补丁）。
 
+> **注意（node_modules 依赖）**：若把 DCP 包复制到自定义位置（如 `dcp-patched/`）再打补丁，必须**连同 `node_modules/` 一起复制**，否则加载插件会报 `Cannot find module '@anthropic-ai/tokenizer'`。原依赖位于 npm 缓存：
+> ```bash
+> cp -r ~/.cache/opencode/packages/@tarquinen/opencode-dcp@3.1.14/node_modules ~/.config/opencode/dcp-patched/node_modules
+> ```
+> 若直接在 npm 缓存原位置打补丁（apply.sh 默认方式），则无需此步。
+
 ### 安装行为层插件
 
 1. 复制 `plugin/adaptive-compress-backoff.ts` 到 `~/.config/opencode/plugin/`
