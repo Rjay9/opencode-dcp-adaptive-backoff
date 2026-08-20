@@ -1,0 +1,29 @@
+--- /home/nokk/.cache/opencode/packages/@tarquinen/opencode-dcp@3.1.14/node_modules/@tarquinen/opencode-dcp/dist/index.js	2026-08-13 20:37:09.618071366 +0800
++++ /home/nokk/.config/opencode/dcp-patched/dist/index.js	2026-08-21 02:34:45.131162092 +0800
+@@ -6186,6 +6186,14 @@
+     }
+   }
+   if (overMaxLimit) {
++    state.adaptiveBackoff = state.adaptiveBackoff || { count: 0, raised: 0 };
++    state.adaptiveBackoff.count += 1;
++    if (state.adaptiveBackoff.count >= 3 && config.compress.maxContextLimit < 900000) {
++      config.compress.maxContextLimit = Math.min(900000, Math.ceil(config.compress.maxContextLimit * 1.5));
++      state.adaptiveBackoff.count = 0;
++      state.adaptiveBackoff.raised += 1;
++      logger.info("[adaptive-backoff] raised maxContextLimit to " + config.compress.maxContextLimit);
++    }
+     if (lastMessage) {
+       const interval = getNudgeFrequency(config);
+       const added = addAnchor(
+@@ -6233,7 +6241,10 @@
+       }
+     }
+   }
+-  applyAnchoredNudges(state, config, messages, prompts, compressionPriorities);
++  if (!overMaxLimit && state.adaptiveBackoff) {
++      state.adaptiveBackoff.count = 0;
++    }
++    applyAnchoredNudges(state, config, messages, prompts, compressionPriorities);
+   if (anchorsChanged) {
+     void saveSessionState(state, logger);
+   }
